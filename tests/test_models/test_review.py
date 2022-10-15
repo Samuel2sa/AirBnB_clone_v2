@@ -1,94 +1,75 @@
 #!/usr/bin/python3
-"""
-Module for unittests for the Review class
-"""
+"""test for review"""
 import unittest
 import os
-import models
+from os import getenv
 from models.review import Review
+from models.base_model import BaseModel
+import pep8
 
 
-class TestReviewCreation(unittest.TestCase):
-    """Test class for instantiating Review instance"""
+class TestReview(unittest.TestCase):
+    """this will test the place class"""
 
-    def setUp(self):
-        self.file = 'file.json'
-        try:
-            os.remove(self.file)
-        except:
-            pass
-        self.x = Review()
-        self.validAttributes = {
-            'place_id': str,
-            'user_id': str,
-            'text': str
-            }
-        self.storage = models.storage
+    @classmethod
+    def setUpClass(cls):
+        """set up for test"""
+        cls.rev = Review()
+        cls.rev.place_id = "4321-dcba"
+        cls.rev.user_id = "123-bca"
+        cls.rev.text = "The srongest in the Galaxy"
+
+    @classmethod
+    def teardown(cls):
+        """at the end of the test this will tear it down"""
+        del cls.rev
 
     def tearDown(self):
+        """teardown"""
         try:
-            os.remove(self.file)
-        except:
+            os.remove("file.json")
+        except Exception:
             pass
 
-    def createReview(self):
-        self.ex = Review()
-        self.ex.place_id = "23asdk"
-        self.ex.user_id = "asdfoie"
-        self.ex.text = "text"
+    def test_pep8_Review(self):
+        """Tests pep8 style"""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(['models/review.py'])
+        self.assertEqual(p.total_errors, 0, "fix pep8")
 
-    def test_has_correct_class_name(self):
-        self.assertEqual('Review', self.x.__class__.__name__)
+    def test_checking_for_docstring_Review(self):
+        """checking for docstrings"""
+        self.assertIsNotNone(Review.__doc__)
 
-    def test_empty_has_attrs(self):
-        for k in self.validAttributes:
-            self.assertTrue(hasattr(self.x, k))
+    def test_attributes_review(self):
+        """chekcing if review have attributes"""
+        self.assertTrue('id' in self.rev.__dict__)
+        self.assertTrue('created_at' in self.rev.__dict__)
+        self.assertTrue('updated_at' in self.rev.__dict__)
+        self.assertTrue('place_id' in self.rev.__dict__)
+        self.assertTrue('text' in self.rev.__dict__)
+        self.assertTrue('user_id' in self.rev.__dict__)
 
-    def test_empty_attrs_type(self):
-        for k, v in self.validAttributes.items():
-            test_type = type(getattr(self.x, k))
-            self.assertEqual(test_type, v)
+    def test_is_subclass_Review(self):
+        """test if review is subclass of BaseModel"""
+        self.assertTrue(issubclass(self.rev.__class__, BaseModel), True)
 
-    def test_added_attrs(self):
-        self.createReview()
-        self.assertEqual(self.ex.place_id, "23asdk")
-        self.assertEqual(self.ex.user_id, "asdfoie")
+    def test_attribute_types_Review(self):
+        """test attribute type for Review"""
+        self.assertEqual(type(self.rev.text), str)
+        self.assertEqual(type(self.rev.place_id), str)
+        self.assertEqual(type(self.rev.user_id), str)
 
-    def test_check_custom_attrs(self):
-        self.x.custom_attr = "Test"
-        self.assertEqual(self.x.custom_attr, "Test")
-        self.assertIsInstance(self.x.custom_attr, str)
+    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") == 'db', 'DB')
+    def test_save_Review(self):
+        """test if the save works"""
+        self.rev.save()
+        self.assertNotEqual(self.rev.created_at, self.rev.updated_at)
 
-    def test_save_time_change(self):
-        old_time = self.x.updated_at
-        self.x.save()
-        self.assertNotEqual(self.x.updated_at, old_time)
+    def test_to_dict_Review(self):
+        """test if dictionary works"""
+        self.assertEqual('to_dict' in dir(self.rev), True)
 
-    def test_new_dict(self):
-        self.createReview()
-        dict_ = self.ex.to_dict()
-        self.y = Review(**dict_)
-        self.assertEqual(self.ex.place_id, self.y.place_id)
 
-    def test_new_dict_attr_types(self):
-        self.createReview()
-        dict_ = self.ex.to_dict()
-        self.y = Review(**dict_)
-        for k, v in self.validAttributes.items():
-            test_type = type(getattr(self.y, k))
-            self.assertEqual(test_type, v)
-
-    def test_save(self):
-        self.assertIsInstance(self.storage._FileStorage__objects, dict)
-        self.storage.save()
-        self.assertTrue(os.path.exists(self.file))
-        self.assertTrue(os.stat(self.file).st_size != 0)
-
-    def test_reload(self):
-        x_id = self.x.id
-        x_id_key = "{}.{}".format(self.x.__class__.__name__, self.x.id)
-        self.storage.save()
-        self.storage._FileStorage__objects = {}
-        self.storage.reload()
-        self.assertEqual(x_id,
-                         self.storage._FileStorage__objects[x_id_key].id)
+if __name__ == "__main__":
+    unittest.main()

@@ -1,86 +1,67 @@
 #!/usr/bin/python3
-"""
-Module for unittests for the Amenity class
-"""
+"""test for amenity"""
 import unittest
 import os
-import models
 from models.amenity import Amenity
+from models.base_model import BaseModel
+import pep8
 
 
-class TestAmenityEmptyCreation(unittest.TestCase):
-    """Test class for instantiating amenity"""
+class TestAmenity(unittest.TestCase):
+    """this will test the Amenity class"""
 
-    def setUp(self):
-        self.file = 'file.json'
-        try:
-            os.remove(self.file)
-        except:
-            pass
-        self.x = Amenity()
-        self.validAttributes = {
-            'name': str,
-            }
-        self.storage = models.storage
+    @classmethod
+    def setUpClass(cls):
+        """set up for test"""
+        cls.amenity = Amenity()
+        cls.amenity.name = "Breakfast"
+
+    @classmethod
+    def teardown(cls):
+        """at the end of the test this will tear it down"""
+        del cls.amenity
 
     def tearDown(self):
+        """teardown"""
         try:
-            os.remove(self.file)
-        except:
+            os.remove("file.json")
+        except Exception:
             pass
 
-    def test_user_has_correct_class_name(self):
-        self.assertEqual('Amenity', self.x.__class__.__name__)
+    def test_pep8_Amenity(self):
+        """Tests pep8 style"""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(['models/amenity.py'])
+        self.assertEqual(p.total_errors, 0, "fix pep8")
 
-    def test_empty_amenity_has_attrs(self):
-        for k in self.validAttributes:
-            self.assertTrue(hasattr(self.x, k))
+    def test_checking_for_docstring_Amenity(self):
+        """checking for docstrings"""
+        self.assertIsNotNone(Amenity.__doc__)
 
-    def test_empyt_amenity_attrs_type(self):
-        for k, v in self.validAttributes.items():
-            test_type = type(getattr(self.x, k))
-            self.assertEqual(test_type, v)
+    def test_attributes_Amenity(self):
+        """chekcing if amenity have attibutes"""
+        self.assertTrue('id' in self.amenity.__dict__)
+        self.assertTrue('created_at' in self.amenity.__dict__)
+        self.assertTrue('updated_at' in self.amenity.__dict__)
+        self.assertTrue('name' in self.amenity.__dict__)
 
-    def test_amenity_added_attrs(self):
-        self.x.name = "pool"
-        self.assertEqual(self.x.name, "pool")
+    def test_is_subclass_Amenity(self):
+        """test if Amenity is subclass of Basemodel"""
+        self.assertTrue(issubclass(self.amenity.__class__, BaseModel), True)
 
-    def test_check_custom_attrs(self):
-        self.x.custom_attr = "Test"
-        self.assertEqual(self.x.custom_attr, "Test")
-        self.assertIsInstance(self.x.custom_attr, str)
+    def test_attribute_types_Amenity(self):
+        """test attribute type for Amenity"""
+        self.assertEqual(type(self.amenity.name), str)
 
-    # TODO: This fails occasionally
-    def test_save_time_change(self):
-        old_time = self.x.updated_at
-        self.x.save()
-        self.assertNotEqual(self.x.updated_at, old_time)
+    def test_save_Amenity(self):
+        """test if the save works"""
+        self.amenity.save()
+        self.assertNotEqual(self.amenity.created_at, self.amenity.updated_at)
 
-    def test_new_amenity_dict(self):
-        self.x.name = "pool"
-        dict_ = self.x.to_dict()
-        self.y = Amenity(**dict_)
-        self.assertEqual(self.x.name, self.y.name)
+    def test_to_dict_Amenity(self):
+        """test if dictionary works"""
+        self.assertEqual('to_dict' in dir(self.amenity), True)
 
-    def test_new_amenity_dict_attr_types(self):
-        self.x.name = "pool"
-        dict_ = self.x.to_dict()
-        self.y = Amenity(**dict_)
-        for k, v in self.validAttributes.items():
-            test_type = type(getattr(self.y, k))
-            self.assertEqual(test_type, v)
 
-    def test_save_user(self):
-        self.assertIsInstance(self.storage._FileStorage__objects, dict)
-        self.storage.save()
-        self.assertTrue(os.path.exists(self.file))
-        self.assertTrue(os.stat(self.file).st_size != 0)
-
-    def test_reload_amenity(self):
-        x_id = self.x.id
-        x_id_key = "{}.{}".format(self.x.__class__.__name__, self.x.id)
-        self.storage.save()
-        self.storage._FileStorage__objects = {}
-        self.storage.reload()
-        self.assertEqual(x_id,
-                         self.storage._FileStorage__objects[x_id_key].id)
+if __name__ == "__main__":
+    unittest.main()
