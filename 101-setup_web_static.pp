@@ -5,18 +5,18 @@ $nginx_conf = "server {
     listen 80 default_server;
     listen [::]:80 default_server;
     add_header X-Served-By ${hostname};
-    root   /var/www/html;
+    root   /etc/nginx/html;
     index  index.html index.htm;
     location /hbnb_static {
         alias /data/web_static/current;
         index index.html index.htm;
     }
     location /redirect_me {
-        return 301 http://cuberule.com/;
+        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
     }
     error_page 404 /404.html;
     location /404 {
-      root /var/www/html;
+      root /etc/nginx/html;
       internal;
     }
 }"
@@ -60,20 +60,20 @@ exec { 'chown -R ubuntu:ubuntu /data/':
   path => '/usr/bin/:/usr/local/bin/:/bin/'
 }
 
-file { '/var/www':
+file { '/etc/nginx':
   ensure => 'directory'
 } ->
 
-file { '/var/www/html':
+file { '/etc/nginx/html':
   ensure => 'directory'
 } ->
 
-file { '/var/www/html/index.html':
+file { '/etc/nginx/html/index.html':
   ensure  => 'present',
   content => "Holberton School Nginx\n"
 } ->
 
-file { '/var/www/html/404.html':
+file { '/etc/nginx/html/404.html':
   ensure  => 'present',
   content => "Ceci n'est pas une page\n"
 } ->
